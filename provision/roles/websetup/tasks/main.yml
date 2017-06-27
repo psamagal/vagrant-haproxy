@@ -1,0 +1,51 @@
+---
+- name: Install dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - python-daemon
+  become: true
+
+
+- name: Create application group
+  group:
+    name: "{{ group_user }}"
+    state: present
+  become: true
+
+- name: Create application user
+  user:
+    name: "{{ app_user }}"
+    comment: "{{ app_user }}"
+    group: "{{ group_user }}"
+    home: "{{ app_home }}"
+  become: true
+
+- name: Create application home folder
+  file:
+    path: "{{ app_home }}"
+    state: directory
+  become: true
+
+- name: copy application code to destination
+  template:
+    src: "server.py.j2"
+    dest: "{{ app_home }}/server.py"
+    owner: "{{ app_user }}"
+    group: "{{ group_user }}"
+    mode: 0755
+  become: true
+
+- name: copy application code to destination
+  template:
+    src: "start.sh.j2"
+    dest: "{{ app_home }}/start.sh"
+    owner: "{{ app_user }}"
+    group: "{{ group_user }}"
+    mode: 0755
+  become: true
+
+- name: Start the application
+  shell: "{{ app_home }}/start.sh && sleep 2"
+  become: true

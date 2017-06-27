@@ -1,0 +1,30 @@
+global
+    log 127.0.0.1   local0
+    log 127.0.0.1   local1 notice
+    daemon
+    maxconn 256
+defaults
+    log     global
+    mode    http
+    timeout connect 2s
+    timeout client 2s
+    timeout server 2s
+
+frontend http-in
+    bind *:80
+    default_backend webservers
+
+backend webservers
+    mode http
+    balance roundrobin
+    option httpchk GET / HTTP/1.1\r\n
+    http-check expect status 200
+    server web1 192.168.1.221:8080 maxconn 32 check
+    server web2 192.168.1.222:8080 maxconn 32 check
+
+listen stats :9000
+    mode http
+    stats enable  # Enable stats page
+    stats hide-version  # Hide HAProxy version
+    stats realm Haproxy\ Statistics  # Title text for popup window
+    stats uri /stats
